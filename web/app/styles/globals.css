@@ -698,3 +698,8 @@ button:focus-within {
     scrollbar-width: none;
   }
 }
+
+/* img.block {
+  visibility: hidden!important;
+  display: none!important;
+} */

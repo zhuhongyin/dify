@@ -268,7 +268,7 @@ x-shared-env: &shared-api-worker-env
   TABLESTORE_INSTANCE_NAME: ${TABLESTORE_INSTANCE_NAME:-instance-name}
   TABLESTORE_ACCESS_KEY_ID: ${TABLESTORE_ACCESS_KEY_ID:-xxx}
   TABLESTORE_ACCESS_KEY_SECRET: ${TABLESTORE_ACCESS_KEY_SECRET:-xxx}
-  UPLOAD_FILE_SIZE_LIMIT: ${UPLOAD_FILE_SIZE_LIMIT:-15}
+  UPLOAD_FILE_SIZE_LIMIT: ${UPLOAD_FILE_SIZE_LIMIT:-1000}
   UPLOAD_FILE_BATCH_LIMIT: ${UPLOAD_FILE_BATCH_LIMIT:-5}
   ETL_TYPE: ${ETL_TYPE:-dify}
   UNSTRUCTURED_API_URL: ${UNSTRUCTURED_API_URL:-}
@@ -389,7 +389,7 @@ x-shared-env: &shared-api-worker-env
   NGINX_SSL_CERT_KEY_FILENAME: ${NGINX_SSL_CERT_KEY_FILENAME:-dify.key}
   NGINX_SSL_PROTOCOLS: ${NGINX_SSL_PROTOCOLS:-TLSv1.1 TLSv1.2 TLSv1.3}
   NGINX_WORKER_PROCESSES: ${NGINX_WORKER_PROCESSES:-auto}
-  NGINX_CLIENT_MAX_BODY_SIZE: ${NGINX_CLIENT_MAX_BODY_SIZE:-15M}
+  NGINX_CLIENT_MAX_BODY_SIZE: ${NGINX_CLIENT_MAX_BODY_SIZE:-1500M}
   NGINX_KEEPALIVE_TIMEOUT: ${NGINX_KEEPALIVE_TIMEOUT:-65}
   NGINX_PROXY_READ_TIMEOUT: ${NGINX_PROXY_READ_TIMEOUT:-3600s}
   NGINX_PROXY_SEND_TIMEOUT: ${NGINX_PROXY_SEND_TIMEOUT:-3600s}
@@ -470,7 +470,7 @@ x-shared-env: &shared-api-worker-env
 services:
   # API service
   api:
-    image: docker.1ms.run/langgenius/dify-api:1.2.0
+    image: langgenius/dify-api:1.2.0
     restart: always
     environment:
       # Use the shared environment variables.
@@ -497,7 +497,7 @@ services:
   # worker service
   # The Celery worker for processing the queue.
   worker:
-    image: docker.1ms.run/langgenius/dify-api:1.2.0
+    image: langgenius/dify-api:1.2.0
     restart: always
     environment:
       # Use the shared environment variables.
@@ -521,8 +521,7 @@ services:
 
   # Frontend web application.
   web:
-    # image: docker.1ms.run/langgenius/dify-web:1.2.0
-    build: ../web
+    image: langgenius/dify-web:1.2.0
     restart: always
     environment:
       CONSOLE_API_URL: ${CONSOLE_API_URL:-}
@@ -543,7 +542,7 @@ services:
 
   # The postgres database.
   db:
-    image: docker.1ms.run/postgres:15-alpine
+    image: postgres:15-alpine
     restart: always
     environment:
       PGUSER: ${PGUSER:-postgres}
@@ -558,8 +557,6 @@ services:
                -c 'effective_cache_size=${POSTGRES_EFFECTIVE_CACHE_SIZE:-4096MB}'
     volumes:
       - ./volumes/db/data:/var/lib/postgresql/data
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
       test: [ 'CMD', 'pg_isready', '-h', 'db', '-U', '${PGUSER:-postgres}', '-d', '${POSTGRES_DB:-dify}' ]
       interval: 1s
@@ -568,7 +565,7 @@ services:
 
   # The redis cache.
   redis:
-    image: docker.1ms.run/redis:6-alpine
+    image: redis:6-alpine
     restart: always
     environment:
       REDISCLI_AUTH: ${REDIS_PASSWORD:-difyai123456}
@@ -582,7 +579,7 @@ services:
 
   # The DifySandbox
   sandbox:
-    image: docker.1ms.run/langgenius/dify-sandbox:0.2.11
+    image: langgenius/dify-sandbox:0.2.11
     restart: always
     environment:
       # The DifySandbox configurations
@@ -605,7 +602,7 @@ services:
 
   # plugin daemon
   plugin_daemon:
-    image: docker.1ms.run/langgenius/dify-plugin-daemon:0.0.7-local
+    image: langgenius/dify-plugin-daemon:0.0.7-local
     restart: always
     environment:
       # Use the shared environment variables.
@@ -653,7 +650,7 @@ services:
   # for more information, please refer to
   # https://docs.dify.ai/learn-more/faq/install-faq#id-18.-why-is-ssrf_proxy-needed
   ssrf_proxy:
-    image: docker.1ms.run/ubuntu/squid:latest
+    image: ubuntu/squid:latest
     restart: always
     volumes:
       - ./ssrf_proxy/squid.conf.template:/etc/squid/squid.conf.template
@@ -673,7 +670,7 @@ services:
   # Certbot service
   # use `docker-compose --profile certbot up` to start the certbot service.
   certbot:
-    image: docker.1ms.run/certbot/certbot
+    image: certbot/certbot
     profiles:
       - certbot
     volumes:
@@ -693,7 +690,7 @@ services:
   # The nginx reverse proxy.
   # used for reverse proxying the API service and Web service.
   nginx:
-    image: docker.1ms.run/nginx:latest
+    image: nginx:latest
     restart: always
     volumes:
       - ./nginx/nginx.conf.template:/etc/nginx/nginx.conf.template
@@ -732,7 +729,7 @@ services:
 
   # The Weaviate vector store.
   weaviate:
-    image: docker.1ms.run/semitechnologies/weaviate:1.19.0
+    image: semitechnologies/weaviate:1.19.0
     profiles:
       - ''
       - weaviate
@@ -757,7 +754,7 @@ services:
   # Qdrant vector store.
   # (if used, you need to set VECTOR_STORE to qdrant in the api & worker service.)
   qdrant:
-    image: docker.1ms.run/langgenius/qdrant:v1.7.3
+    image: langgenius/qdrant:v1.7.3
     profiles:
       - qdrant
     restart: always
@@ -801,7 +798,7 @@ services:
 
   # The pgvector vector database.
   pgvector:
-    image: docker.1ms.run/pgvector/pgvector:pg16
+    image: pgvector/pgvector:pg16
     profiles:
       - pgvector
     restart: always
@@ -828,7 +825,7 @@ services:
 
   # pgvecto-rs vector store
   pgvecto-rs:
-    image: docker.1ms.run/tensorchord/pgvecto-rs:pg16-v0.3.0
+    image: tensorchord/pgvecto-rs:pg16-v0.3.0
     profiles:
       - pgvecto-rs
     restart: always
@@ -850,7 +847,7 @@ services:
 
   # Chroma vector database
   chroma:
-    image: docker.1ms.run/ghcr.io/chroma-core/chroma:0.5.20
+    image: ghcr.io/chroma-core/chroma:0.5.20
     profiles:
       - chroma
     restart: always
@@ -863,7 +860,7 @@ services:
 
   # OceanBase vector database
   oceanbase:
-    image: docker.1ms.run/oceanbase/oceanbase-ce:4.3.5.1-101000042025031818
+    image: oceanbase/oceanbase-ce:4.3.5.1-101000042025031818
     container_name: oceanbase
     profiles:
       - oceanbase
@@ -883,7 +880,7 @@ services:
 
   # Oracle vector database
   oracle:
-    image: docker.1ms.run/container-registry.oracle.com/database/free:latest
+    image: container-registry.oracle.com/database/free:latest
     profiles:
       - oracle
     restart: always
@@ -899,7 +896,7 @@ services:
   # Milvus vector database services
   etcd:
     container_name: milvus-etcd
-    image: docker.1ms.run/quay.io/coreos/etcd:v3.5.5
+    image: quay.io/coreos/etcd:v3.5.5
     profiles:
       - milvus
     environment:
@@ -920,7 +917,7 @@ services:
 
   minio:
     container_name: milvus-minio
-    image: docker.1ms.run/minio/minio:RELEASE.2023-03-20T20-16-18Z
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
     profiles:
       - milvus
     environment:
@@ -939,7 +936,7 @@ services:
 
   milvus-standalone:
     container_name: milvus-standalone
-    image: docker.1ms.run/milvusdb/milvus:v2.5.0-beta
+    image: milvusdb/milvus:v2.5.0-beta
     profiles:
       - milvus
     command: [ 'milvus', 'run', 'standalone' ]
@@ -967,7 +964,7 @@ services:
   # Opensearch vector database
   opensearch:
     container_name: opensearch
-    image: docker.1ms.run/opensearchproject/opensearch:latest
+    image: opensearchproject/opensearch:latest
     profiles:
       - opensearch
     environment:
@@ -989,7 +986,7 @@ services:
 
   opensearch-dashboards:
     container_name: opensearch-dashboards
-    image: docker.1ms.run/opensearchproject/opensearch-dashboards:latest
+    image: opensearchproject/opensearch-dashboards:latest
     profiles:
       - opensearch
     environment:
@@ -1003,7 +1000,7 @@ services:
 
   # opengauss vector database.
   opengauss:
-    image: docker.1ms.run/opengauss/opengauss:7.0.0-RC1
+    image: opengauss/opengauss:7.0.0-RC1
     profiles:
       - opengauss
     privileged: true
@@ -1026,7 +1023,7 @@ services:
   # MyScale vector database
   myscale:
     container_name: myscale
-    image: docker.1ms.run/myscale/myscaledb:1.6.4
+    image: myscale/myscaledb:1.6.4
     profiles:
       - myscale
     restart: always
@@ -1041,7 +1038,7 @@ services:
   # https://www.elastic.co/guide/en/elasticsearch/reference/current/settings.html
   # https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-prod-prerequisites
   elasticsearch:
-    image: docker.1ms.run/docker.elastic.co/elasticsearch/elasticsearch:8.14.3
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
     container_name: elasticsearch
     profiles:
       - elasticsearch
@@ -1076,7 +1073,7 @@ services:
   # https://www.elastic.co/guide/en/kibana/current/docker.html
   # https://www.elastic.co/guide/en/kibana/current/settings.html
   kibana:
-    image: docker.1ms.run/docker.elastic.co/kibana/kibana:8.14.3
+    image: docker.elastic.co/kibana/kibana:8.14.3
     container_name: kibana
     profiles:
       - elasticsearch
@@ -1104,7 +1101,7 @@ services:
   # unstructured .
   # (if used, you need to set ETL_TYPE to Unstructured in the api & worker service.)
   unstructured:
-    image: docker.1ms.run/downloads.unstructured.io/unstructured-io/unstructured-api:latest
+    image: downloads.unstructured.io/unstructured-io/unstructured-api:latest
     profiles:
       - unstructured
     restart: always
